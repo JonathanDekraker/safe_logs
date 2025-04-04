@@ -3,9 +3,9 @@ import { useFonts } from "expo-font";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import { Platform } from "react-native";
+import { Platform, AppState } from "react-native";
 import ErrorBoundary from "./error-boundary";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, User, signOut } from "firebase/auth";
 import { auth } from "../utils/firebase";
 
 export const unstable_settings = {
@@ -58,6 +58,22 @@ export default function RootLayout() {
       router.replace("/");
     }
   }, [user, loaded, segments]);
+
+  // Add app state change listener to sign out when app is closed
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'background' || nextAppState === 'inactive') {
+        // Sign out the user when app goes to background
+        signOut(auth).catch(error => {
+          console.error('Error signing out:', error);
+        });
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   if (!loaded) {
     return null;
