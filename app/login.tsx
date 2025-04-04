@@ -19,7 +19,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.replace('/'); // Navigate to home screen after successful login
+      router.replace('/restaurant-select'); // Changed from '/' to '/restaurant-select'
     } catch (error: any) {
       Alert.alert('Error', error.message);
     } finally {

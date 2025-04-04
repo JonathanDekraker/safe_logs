@@ -7,6 +7,7 @@ import { Platform, AppState } from "react-native";
 import ErrorBoundary from "./error-boundary";
 import { onAuthStateChanged, User, signOut } from "firebase/auth";
 import { auth } from "../utils/firebase";
+import { useRestaurantStore } from "@/store/restaurant-store";
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
@@ -23,6 +24,7 @@ export default function RootLayout() {
   const [user, setUser] = useState<User | null>(null);
   const segments = useSegments();
   const router = useRouter();
+  const { selectedRestaurant, loadSelectedRestaurant } = useRestaurantStore();
 
   useEffect(() => {
     if (error) {
@@ -46,18 +48,28 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
+    if (user) {
+      loadSelectedRestaurant();
+    }
+  }, [user, loadSelectedRestaurant]);
+
+  useEffect(() => {
     if (!loaded) return;
 
     const isLoginPage = segments[0] === "login";
+    const isRestaurantSelectPage = segments[0] === "restaurant-select";
 
     if (!user && !isLoginPage) {
       // Redirect to the login page if not authenticated
       router.replace("/login");
     } else if (user && isLoginPage) {
-      // Redirect to the home page if authenticated
-      router.replace("/");
+      // Redirect to the restaurant select page if authenticated but no restaurant selected
+      router.replace("/restaurant-select");
+    } else if (user && !isLoginPage && !isRestaurantSelectPage && !selectedRestaurant) {
+      // Redirect to restaurant select if no restaurant is selected
+      router.replace("/restaurant-select");
     }
-  }, [user, loaded, segments]);
+  }, [user, loaded, segments, selectedRestaurant]);
 
   // Add app state change listener to sign out when app is closed
   useEffect(() => {
@@ -93,6 +105,13 @@ function RootLayoutNav() {
       <Stack.Screen name="modal" options={{ presentation: "modal" }} />
       <Stack.Screen 
         name="login" 
+        options={{ 
+          headerShown: false,
+          gestureEnabled: false 
+        }} 
+      />
+      <Stack.Screen 
+        name="restaurant-select" 
         options={{ 
           headerShown: false,
           gestureEnabled: false 
