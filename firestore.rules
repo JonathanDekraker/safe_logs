@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function hasAccessToGroup(groupId) {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/userRestaurants/$(request.auth.uid + '_' + groupId));
+    }
+    
+    // User profiles
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+    }
+    
+    // Restaurant groups
+    match /restaurants/{restaurantId} {
+      allow read: if isAuthenticated() && hasAccessToGroup(resource.data.groupId);
+      allow write: if isAuthenticated() && hasAccessToGroup(resource.data.groupId);
+    }
+    
+    // User-Restaurant mappings
+    match /userRestaurants/{mappingId} {
+      allow read: if isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || 
+         resource.data.groupId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.adminGroups);
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+  }
+} 
