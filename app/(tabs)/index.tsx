@@ -9,12 +9,14 @@ import DashboardCard from '@/components/DashboardCard';
 import AlertCard from '@/components/AlertCard';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { saveData, fetchData } from '@/utils/firestoreService';
+import { useRestaurantStore } from '@/store/restaurant-store';
 
 export default function DashboardScreen() {
   const router = useRouter();
   const { checklists, temperatureLogs, coolingLogs, sanitationTasks, alerts, markAlertAsRead, clearAlert } = useAppStore();
   const { plans, monitoringLogs, correctiveActionLogs } = useHACCPStore();
   const [firebaseItems, setFirebaseItems] = useState<any[]>([]);
+  const { selectedRestaurant } = useRestaurantStore();
 
   const handleSave = async () => {
     await saveData({ message: 'Hello Firebase!', createdAt: new Date() });
@@ -163,6 +165,12 @@ export default function DashboardScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>SafeLogs</Text>
           <Text style={styles.subtitle}>Kitchen Compliance</Text>
+          {selectedRestaurant && (
+            <View style={styles.restaurantInfo}>
+              <FontAwesome name="cutlery" size={14} color={colors.primary} style={styles.restaurantIcon} />
+              <Text style={styles.restaurantName}>{selectedRestaurant.name}</Text>
+            </View>
+          )}
         </View>
         
         <View style={styles.cardsContainer}>
@@ -349,5 +357,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.text,
     marginBottom: 4,
+  },
+  restaurantInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  restaurantIcon: {
+    marginRight: 6,
+  },
+  restaurantName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.gray,
+    letterSpacing: 0.3,
   },
 });

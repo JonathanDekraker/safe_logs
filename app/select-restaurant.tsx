@@ -3,13 +3,14 @@ import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } fr
 import { router } from 'expo-router';
 import { signOut } from 'firebase/auth';
 import { auth } from '../utils/firebase';
-import { getUserRestaurants, Restaurant } from '../utils/userRestaurants';
-import { setSelectedRestaurant } from '../utils/selectedRestaurant';
+import { getUserRestaurants, Restaurant } from '@/utils/userRestaurants';
+import { useRestaurantStore } from '@/store/restaurant-store';
 
 export default function SelectRestaurantScreen() {
   const [loading, setLoading] = useState(true);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [selectedRestaurant, setSelectedRestaurantState] = useState<Restaurant | null>(null);
+  const setSelectedRestaurant = useRestaurantStore(state => state.setSelectedRestaurant);
 
   useEffect(() => {
     loadRestaurants();

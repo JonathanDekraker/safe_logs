@@ -4,8 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 interface Restaurant {
   id: string;
   name: string;
-  address: string;
-  groupId: string;
+  address?: string;
+  groupId?: string;
 }
 
 interface RestaurantStore {
